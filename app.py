@@ -23,13 +23,11 @@ from flask import (
     url_for,
 )
 
+from config import config
 from database import get_connection, init_db
 
 app = Flask(__name__)
-app.secret_key = "clave-insegura-de-laboratorio"  # MALA PRACTICA: clave debil y fija
-
-UPLOAD_FOLDER = "uploads"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config.from_object(config[os.getenv("FLASK_ENV", "default")])
 
 
 @app.route("/")
@@ -210,5 +208,8 @@ def subir():
 if __name__ == "__main__":
     if not os.path.exists("academia.db"):
         init_db()
-    # debug=True tambien es una mala practica en produccion (expone la consola)
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(
+        host=app.config.get("HOST", "127.0.0.1"),
+        port=app.config.get("PORT", 5000),
+        debug=app.config.get("DEBUG", True),
+    )
