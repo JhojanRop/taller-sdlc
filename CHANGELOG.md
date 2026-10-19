@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/JhojanRop/taller-sdlc/compare/v0.2.2...v0.3.0) (2026-10-19)
+
+
+### Features
+
+* enforce branch naming in pre-commit ([8a122e0](https://github.com/JhojanRop/taller-sdlc/commit/8a122e0020070eb13d7abafa8ae658f0d4c0e519))
+
+
+### Documentation
+
+* add agents guide for coding agents ([de8df23](https://github.com/JhojanRop/taller-sdlc/commit/de8df231a935505aa3b012405c5bf4388850aca2))
+* document git flow and branch model ([d0014ed](https://github.com/JhojanRop/taller-sdlc/commit/d0014edefac73d0aea11c1c33981abf529496f3d))
+
 ## [0.2.2](https://github.com/JhojanRop/taller-sdlc/compare/v0.2.1...v0.2.2) (2026-10-19)
 
 
