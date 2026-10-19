@@ -34,8 +34,10 @@ Los tipos alimentan el versionado automatico (`feat` → minor, `fix` → patch,
   del merge (`Merge branch 'feat/x' into dev`). Se borran despues del
   merge. Un hook de pre-commit verifica el naming en cada commit.
 - **`dev → main`**: via PR — es el "release" del flujo (dispara
-  release-please). No hay branch `release/*`: cuando se quiere liberar,
-  abre el PR desde `dev`.
+  release-please). El merge del PR es **merge commit** (no rebase/squash)
+  para conservar también en `main` la trazabilidad del merge `--no-ff`
+  de `dev`. No hay branch `release/*`: cuando se quiere liberar, abre el
+  PR desde `dev`.
 - **Hotfixs**: no hay branch `hotfix/*`. Se nacen `fix/*` **desde `main`**,
   PR a `main` (el ruleset no se salta aunque sea urgente) y **sync
   inmediato** a `dev` (`git merge origin/main`) para no divergir.
