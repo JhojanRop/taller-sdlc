@@ -43,3 +43,16 @@ repos:
         always_run: true
         pass_filenames: true
         stages: [pre-push]
+
+  # Commitlint: Conventional Commits obligatorios en cada mensaje
+  - repo: local
+    hooks:
+      - id: commitlint
+        name: commitlint (conventional commits)
+        entry: commitlint
+        args: [--edit]
+        language: node
+        additional_dependencies:
+          - '@commitlint/cli@21.2.4'
+          - '@commitlint/config-conventional@21.2.4'
+        stages: [commit-msg]
