@@ -20,6 +20,10 @@ concurrency:
 jobs:
   quality-and-tests:
     runs-on: ubuntu-latest
+    # Los Release PRs del bot (ramas release-please--**) no corren CI:
+    # GITHUB_TOKEN-eventos son poco fiables aqui, y el mismo contenido
+    # ya se valida en el push de esos PRs a main.
+    if: ${{ !startsWith(github.head_ref, 'release-please--') }}
     steps:
       - uses: actions/checkout@v7
 
