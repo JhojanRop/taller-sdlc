@@ -146,11 +146,6 @@ app.config.from_object(config[os.getenv("FLASK_ENV", "default")])
 - `.github/workflows/ci.yml`: checkout → `setup-uv` → `uv sync` → `pre-commit run --all-files` → `uv run pytest` (concurrency-group para cancelar runs obsoletos).
 - `tests/test_smoke.py`: config cargable, manifest↔pyproject sincrónicos, presencia de archivos shift-left. Se agregó `pythonpath = ["."]` a `[tool.pytest.ini_options]` para que los tests importen módulos raíz.
 
-### Pendientes
-- `bandit` (SAST): activarlo en CI con supresiones `# nosec` **marcando** las vulnerabilidades intencionales del lab (SQLi/XSS/IDOR/uploads). No en pre-commit local, porque gritaría en cada commit.
-- Red de seguridad para releases en cambios de `config.json` de release-please (revisión manual en PR).
-- `agents.md` + git-flow (discusión futura): reglas para agentes de IA y flujo de ramas — postergado a decisión explícita.
-
 ### 11. Estreno end-to-end y ajustes del primer ciclo
 **Acontecimiento:** primer ciclo completo dev → PR → CI → merge → `v0.2.0` → fix (release `v0.2.1`). Aprendizajes aplicados en caliente:
 - `astral-sh/setup-uv` no resolvió como action (infra del runner) → CI instala `uv` con el instalador oficial (`curl astral.sh/uv/install.sh`) y ejecuta pre-commit desde el propio venv (`uv run pre-commit`).
@@ -158,3 +153,27 @@ app.config.from_object(config[os.getenv("FLASK_ENV", "default")])
 - El repo necesitaba **"Allow GitHub Actions to create and approve pull requests"** para que release-please abriera su PR (el PATCH de la API devolvía 404; se activó manual por UI).
 - Tras el merge de un Release PR, `dev` queda con SHAs viejos (rebase del bot) → resolver con `git rebase origin/main` (los patches duplicados se descartan solos).
 - Los PR-triggered runs sobre ramas `release-please--**` fallaban sin log; el job de CI ahora se excluye para ese head (`!startsWith(github.head_ref, 'release-please--')`) — el push de esos PRs a `main` valida el contenido igual.
+### 12. Git-flow reducido + `AGENTS.md`
+**Qué se hizo:**
+- Diseño del flujo de ramas y documentación operativa para agentes de código:
+  - `main` = trunk versionado (asume el rol de `release/*` del git-flow clásico): PR obligatorio, nunca commits directos.
+  - `dev` = integración de desarrollo (local).
+  - Ramas `feat/*|fix/*|docs/*|chore/*|ci/*|refactor/*|test/*|perf/*` → integración **local** a `dev` con **`git merge --no-ff`** (conserva el merge commit como registro de origen), se eliminan después.
+  - `dev → main` via PR = el momento "release" (dispara release-please). Sin rama `release/*`.
+  - Hotfix: `fix/*` nace desde `main`, PR a `main` y **sync inmediato** a `dev` (el merge `origin/main` evita divergencia). Sin `hotfix/*`.
+- `AGENTS.md` en raíz: guía operativa para agentes (formato agents.md del estándar abierto, ~60k repos y soportado nativamente por OpenCode, Codex, Cursor, Gemini CLI, etc.). Contenido basado en las lecciones de los análisis de ~2,500 AGENTS.md (GitHub) y el spec: comandos ejecutables primero, límites explícitos ("no arregles las 4 vulnerabilidades del lab"), invariantes que fallan silenciosamente, referencia a BITACORA como fuente de verdad de decisiones. Sin reglas redundantes con la maquinaria (hooks) ni rutas volátiles.
+- Enforcement adicional: hook `check-branch-naming` (se excluye en CI; `main`/`dev`/ramas del bot exentas).
+
+**Importancia:**
+- **`--no-ff` vs `--ff`**: el merge no-rápido crea un merge commit que dice de qué rama vino el cambio (la "opción de merge" que registra el origen); con ff el historial queda plano y sin trazabilidad de branch.
+- **Hotfix desde `main`** y no desde `dev`: si `dev` tiene features sin liberar, un fix desde ahí saldría acoplado a trabajo a medio cocinar; nacer de `main` lo aísla y el sync inmediato a `dev` evita divergencia en el próximo release.
+- **Compliance de agentes**: la investigación mostró que las instrucciones en Markdown logran 25-40% de cumplimiento en agentes, pero los hooks ~95% → lo crítico se reforza con hooks (naming) y lo contextual vive en `AGENTS.md`.
+- **Limitación conocida**: commitlint ignora por defecto los mensajes `Merge ...` (config-conventional), así que los merge commits del `--no-ff` no requieren tipado convencional. Verificado empíricamente en el primer merge `--no-ff` real del proyecto.
+
+### 13. Flujo establecido (referencia rápida de ops)
+- Para desarrollar: `git switch dev && git switch -c feat/<algo>` → commits → `git checkout dev && git merge --no-ff feat/<algo>` → `git branch -d feat/<algo>` → `git push origin dev`.
+- Para liberar: PR `dev→main` → CI verde → merge (rebase recomendado para conservar mensajes convencionales) → release-please abre `chore(main): release vX.Y.[Z]` → mergear ese PR → tag + release automáticos → `git merge origin/main` en `dev` local.
+
+### Pendientes
+- `bandit` (SAST): activarlo en CI con supresiones `# nosec` **marcando** las vulnerabilidades intencionales del lab (SQLi/XSS/IDOR/uploads). No en pre-commit local, porque gritaría en cada commit.
+- Red de seguridad para releases en cambios de `config.json` de release-please (revisión manual en PR).
