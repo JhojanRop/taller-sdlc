@@ -31,7 +31,7 @@ repos:
     hooks:
       - id: block-commit-on-main
         name: no hacer commit directo en main (trabaja en una rama y abre PR)
-        entry: sh -c 'branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"; if [ "$branch" = "main" ]; then echo "\n✋ Commits directos en main no permitidos. Crea una rama desde dev (o feature/) y abre un PR.\n"; exit 1; fi'
+        entry: sh -c '[ -n "$GITHUB_ACTIONS" ] && exit 0; branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"; if [ "$branch" = "main" ]; then echo "\n✋ Commits directos en main no permitidos. Crea una rama desde dev (o feature/) y abre un PR.\n"; exit 1; fi'
         language: system
         always_run: true
         pass_filenames: false
