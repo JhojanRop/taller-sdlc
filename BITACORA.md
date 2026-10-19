@@ -93,3 +93,60 @@ app.config.from_object(config[os.getenv("FLASK_ENV", "default")])
 -  **Docker/Cloud ready**: En contenedores se usa `HOST=0.0.0.0` y `PORT=8000` (o el que asigne la plataforma) sin rebuild de imagen.
 -  **Desarrollo flexible**: Diferentes desarrolladores pueden usar puertos distintos (`PORT=5001`, `PORT=3000`) solo editando su `.env` local.
 -  **Separación de responsabilidades**: El bloque `if __name__ == "__main__"` es solo para desarrollo local; producción usa Gunicorn que ignora este bloque y lee su propia config (`-b 0.0.0.0:8000`).
+
+---
+
+## Implementación Shift-Left (quality gates + releases automáticos)
+
+### 6. `pre-commit` con calidad y seguridad
+**Qué se hizo:**
+- `uv add --dev pre-commit` → `.pre-commit-config.yaml` versionado por etapas.
+- Hooks: sanitización (`trailing-whitespace`, `end-of-file-fixer`, `check-toml`, `check-merge-conflict`, `debug-statements`), `detect-private-key`, `gitleaks v8.30.1` (secrets en el diff), `ruff check --fix` + `ruff format` (misma config del proyecto).
+- Primer `pre-commit run --all-files` → commit de normalización mecánica (`style: normalize existing files`).
+
+**Importancia:**
+- **Shift-Left de verdad**: los issues se detectan *antes* del commit, no en revisión/CI.
+- **Secrets nunca llegan al repo**: gitleaks bloquea en el momento del `git commit`; más barato que rotar credenciales filtradas.
+- **Format/lint homogéneos**: reutiliza el `ruff` ya configurado (line-length 100, select E/F/I/UP/W).
+
+**Notas de implementación (límites encontrados):**
+- `sh -c '...' arg1 arg2...`: el primer arg se convierte en `$0` — los chequeos posicionales deben iterar `$@`.
+- Pre-commit 4.x entrega el contexto del push en **env vars**, no args posicionales: `PRE_COMMIT_REMOTE_BRANCH`, `PRE_COMMIT_LOCAL_BRANCH`, etc.
+- `git push --dry-run` **no invoca** el hook `pre-push` con refs → para probar el bloqueo se usa un remoto bare de juguete (`git init --bare` + `git push scratch dev:main`).
+- `AKIAIOSFODNN7EXAMPLE` (la key de ejemplo de AWS) está en el **allowlist** de gitleaks: para pruebas usar seudos-secretos con formato real (ej. `github-pat`).
+
+### 7. Protección de `main` (client-side + server-side)
+**Qué se hizo:**
+- Hooks locales: `block-commit-on-main` (stage `pre-commit`) y `block-push-to-main` (stage `pre-push`, lee `PRE_COMMIT_REMOTE_BRANCH`).
+- Mensajes didácticos: ambos sugieren "crea rama y abre PR".
+- Server-side: ruleset de GitHub para `main` (PR obligatorio, sin force-push, sin delete) creado con `gh api`. Es la única capa que **no** se salta con `--no-verify`.
+
+**Importancia:**
+- El CI (`ci.yml`) corre en PRs y en push a `main` → cualquier bypass de hooks locales (`--no-verify`, commits desde la UI) termina atrapado.
+
+### 8. `commitlint` — Conventional Commits obligatorios
+**Qué se hizo:**
+- `commitlint.config.mjs` (`@commitlint/config-conventional`) ejecutado en stage `commit-msg` vía hook local pre-commit (`language: node`, sin `package.json`/`node_modules` en el repo).
+
+**Importancia:**
+- No es solo orden estético: **alimenta el versionado automático** (`feat`→minor, `fix`→patch, `!`→major) del release-please.
+
+### 9. `release-please` — releases automáticos
+**Qué se hizo:**
+- `.github/workflows/release-please.yml` (action `googleapis/release-please-action@v4`, modo manifest) + `release-please-config.json` (`release-type: python` → hace bump de `pyproject.toml`) + `.release-please-manifest.json` (`0.1.0`).
+- Smoke test que verifica la sincronía manifest ↔ pyproject.
+
+**Decisión: `uv.lock` NO se versiona** (a diferencia del proyecto anterior):
+- Consecuencia: el job `sync-lockfile` del workflow original quedó **desactivado** (comentado en el propio workflow) porque sin `uv.lock` trackeado no tendría efecto.
+- Si algún día se versiona, reactivarlo con los fixes ya anotados: condicionar a `releases_created == 'true'` (no `if: always()`), quitar `UV_EXTRA_INDEX_URL`/`SAFETY_INDEX_URL` (secret inexistente en este repo), y bump de actions (`checkout@v5`, `setup-uv@v8`).
+- Uso de `GITHUB_TOKEN` (limitación conocida): recursos creados con él **no disparan** otros workflows → el CI no corre sobre los Release PRs del bot. Suficiente para este lab; si se necesita, usar un PAT como `token`.
+
+### 10. CI + smoke tests base
+**Qué se hizo:**
+- `.github/workflows/ci.yml`: checkout → `setup-uv` → `uv sync` → `pre-commit run --all-files` → `uv run pytest` (concurrency-group para cancelar runs obsoletos).
+- `tests/test_smoke.py`: config cargable, manifest↔pyproject sincrónicos, presencia de archivos shift-left. Se agregó `pythonpath = ["."]` a `[tool.pytest.ini_options]` para que los tests importen módulos raíz.
+
+### Pendientes
+- `bandit` (SAST): activarlo en CI con supresiones `# nosec` **marcando** las vulnerabilidades intencionales del lab (SQLi/XSS/IDOR/uploads). No en pre-commit local, porque gritaría en cada commit.
+- Red de seguridad para releases en cambios de `config.json` de release-please (revisión manual en PR).
+- `agents.md` + git-flow (discusión futura): reglas para agentes de IA y flujo de ramas — postergado a decisión explícita.
