@@ -24,15 +24,14 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v10
+        # instalador oficial de astral (evita dependencias de action marketplace)
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: Install dependencies
         run: uv sync
 
       - name: Run pre-commit (all files)
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files
+        run: uv run pre-commit run --all-files
 
       - name: Run tests
         run: uv run pytest
