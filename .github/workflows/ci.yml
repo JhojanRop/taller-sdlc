@@ -1,0 +1,38 @@
+# CI: red de seguridad para commits que se salten los hooks locales
+# (--no-verify o commits desde la UI de GitHub).
+# Ejecuta los mismos gates de pre-commit + pytest.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-and-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run pre-commit (all files)
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+      - name: Run tests
+        run: uv run pytest
