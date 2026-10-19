@@ -25,3 +25,21 @@ repos:
     rev: v8.30.1
     hooks:
       - id: gitleaks
+
+  # Proteccion de main: los cambios llegan solo via PR desde dev
+  - repo: local
+    hooks:
+      - id: block-commit-on-main
+        name: no hacer commit directo en main (trabaja en una rama y abre PR)
+        entry: sh -c 'branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"; if [ "$branch" = "main" ]; then echo "\n✋ Commits directos en main no permitidos. Crea una rama desde dev (o feature/) y abre un PR.\n"; exit 1; fi'
+        language: system
+        always_run: true
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: block-push-to-main
+        name: no hacer push directo a main (abre un PR desde dev)
+        entry: sh -c 'if [ $# -ge 3 ] && [ "$3" = "refs/heads/main" ]; then echo "\n✋ Push directo a main bloqueado. Sube tu rama y abre un PR a main.\n"; exit 1; fi'
+        language: system
+        always_run: true
+        pass_filenames: true
+        stages: [pre-push]
