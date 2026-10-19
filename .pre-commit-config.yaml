@@ -38,7 +38,7 @@ repos:
         stages: [pre-commit]
       - id: block-push-to-main
         name: no hacer push directo a main (abre un PR desde dev)
-        entry: sh -c 'if [ $# -ge 3 ] && [ "$3" = "refs/heads/main" ]; then echo "\n✋ Push directo a main bloqueado. Sube tu rama y abre un PR a main.\n"; exit 1; fi'
+        entry: sh -c 'for a in "$@"; do if [ "$a" = "refs/heads/main" ]; then echo "\n✋ Push directo a main bloqueado. Sube tu rama y abre un PR a main.\n"; exit 1; fi; done'
         language: system
         always_run: true
         pass_filenames: true
