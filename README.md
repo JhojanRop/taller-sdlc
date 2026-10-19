@@ -33,6 +33,7 @@ Los tipos alimentan el versionado automatico (`feat` → minor, `fix` → patch,
   **en local** (sin PR), siempre con **`--no-ff`** para que quede registro
   del merge (`Merge branch 'feat/x' into dev`). Se borran despues del
   merge. Un hook de pre-commit verifica el naming en cada commit.
+  Los **cambios pequeños de un solo commit** van directo en `dev`, sin rama.
 - **`dev → main`**: via PR — es el "release" del flujo (dispara
   release-please). El merge del PR es **merge commit** (no rebase/squash)
   para conservar también en `main` la trazabilidad del merge `--no-ff`

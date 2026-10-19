@@ -45,6 +45,14 @@ uv run python database.py && uv run python app.py   # arrancar el lab
 - **Features → dev**: merge **local** sin PR, siempre con `--no-ff`
   (`git merge --no-ff feat/x`) para que quede registro del origen. Borrar
   la rama después del merge.
+- **Cambios pequeños de un solo commit**: van **directo en `dev`**, sin
+  rama ni merge `--no-ff` (solo si tocan más de un asunto o son series de
+  commits, usa rama con naming valido).
+- **`main` / pushes / PRs**: **solo bajo instrucción explícita del
+  usuario**. Los agentes NO hacen `push`, no abren PRs ni los mergear;
+  dejan el trabajo commiteado en `dev` local e informan qué falta
+  ejecutar. El push directo a `main` además lo bloquean los hooks y el
+  ruleset.
 - **dev → main**: PR (dispara release-please). El título y body del PR
   deben explicar qué versiones generará.
 - **Hotfix/fix**: rama `fix/*` desde `main`, PR a `main`, y **sync
