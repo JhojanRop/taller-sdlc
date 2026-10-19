@@ -159,7 +159,7 @@ app.config.from_object(config[os.getenv("FLASK_ENV", "default")])
   - `main` = trunk versionado (asume el rol de `release/*` del git-flow clásico): PR obligatorio, nunca commits directos.
   - `dev` = integración de desarrollo (local).
   - Ramas `feat/*|fix/*|docs/*|chore/*|ci/*|refactor/*|test/*|perf/*` → integración **local** a `dev` con **`git merge --no-ff`** (conserva el merge commit como registro de origen), se eliminan después.
-  - `dev → main` via PR = el momento "release" (dispara release-please). Sin rama `release/*`.
+  - `dev → main` via PR = el momento "release" (dispara release-please). Sin rama `release/*`. Merge commit del PR (no rebase) para conservar la trazabilidad en ambas ramas.
   - Hotfix: `fix/*` nace desde `main`, PR a `main` y **sync inmediato** a `dev` (el merge `origin/main` evita divergencia). Sin `hotfix/*`.
 - `AGENTS.md` en raíz: guía operativa para agentes (formato agents.md del estándar abierto, ~60k repos y soportado nativamente por OpenCode, Codex, Cursor, Gemini CLI, etc.). Contenido basado en las lecciones de los análisis de ~2,500 AGENTS.md (GitHub) y el spec: comandos ejecutables primero, límites explícitos ("no arregles las 4 vulnerabilidades del lab"), invariantes que fallan silenciosamente, referencia a BITACORA como fuente de verdad de decisiones. Sin reglas redundantes con la maquinaria (hooks) ni rutas volátiles.
 - Enforcement adicional: hook `check-branch-naming` (se excluye en CI; `main`/`dev`/ramas del bot exentas).
@@ -172,7 +172,8 @@ app.config.from_object(config[os.getenv("FLASK_ENV", "default")])
 
 ### 13. Flujo establecido (referencia rápida de ops)
 - Para desarrollar: `git switch dev && git switch -c feat/<algo>` → commits → `git checkout dev && git merge --no-ff feat/<algo>` → `git branch -d feat/<algo>` → `git push origin dev`.
-- Para liberar: PR `dev→main` → CI verde → merge (rebase recomendado para conservar mensajes convencionales) → release-please abre `chore(main): release vX.Y.[Z]` → mergear ese PR → tag + release automáticos → `git merge origin/main` en `dev` local.
+- Para liberar: PR `dev→main` → CI verde → **merge commit** (estrategia `merge`, no rebase) → el merge commit de `dev` sobrevive en `main` y `dev` puede fast-forward con `git merge origin/main` → release-please abre `chore(main): release vX.Y.[Z]` → mergear ese PR → tag + release automáticos.
+- **Lección del primer ciclo** (v0.2.x–v0.3.0): con rebase-merge, GitHub aplana los merge commits de `dev` y sus SHAs divergen del local (3 handoffs dolorosos). Con merge commit, `main` conserva la trazabilidad y `dev` sincroniza con `ff` limpio.
 
 ### Pendientes
 - `bandit` (SAST): activarlo en CI con supresiones `# nosec` **marcando** las vulnerabilidades intencionales del lab (SQLi/XSS/IDOR/uploads). No en pre-commit local, porque gritaría en cada commit.
