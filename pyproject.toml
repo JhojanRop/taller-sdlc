@@ -1,0 +1,29 @@
+[project]
+name = "laboratorio-seguridad"
+version = "0.1.0"
+description = "Laboratorio intencionalmente vulnerable para enseñanza de seguridad (S-SDLC). Contiene 4 vulnerabilidades clásicas: SQLi, XSS almacenado, IDOR y carga de archivos sin restricción."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.1.3",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "ruff>=0.5",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "W"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]

@@ -1,0 +1,51 @@
+# Python / UV
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.uv/
+uv.lock
+
+# Database (SQLite)
+*.db
+*.sqlite
+*.sqlite3
+*.db-*
+
+# Uploads (vulnerabilidad 4: carga de archivos)
+uploads/
+
+# Environment / Secrets
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Testing / Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Distribution
+dist/
+build/
+*.egg-info/
+
+# Type checking
+.mypy_cache/
+.pyre/
