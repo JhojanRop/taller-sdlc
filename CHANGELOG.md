@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/JhojanRop/taller-sdlc/compare/v0.2.1...v0.2.2) (2026-10-19)
+
+
+### Bug Fixes
+
+* skip ci on release-please branches ([d6d06fc](https://github.com/JhojanRop/taller-sdlc/commit/d6d06fc3d40e4e410d2c97d227ed367d895056ab))
+
 ## [0.2.1](https://github.com/JhojanRop/taller-sdlc/compare/v0.2.0...v0.2.1) (2026-10-19)
 
 
