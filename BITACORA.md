@@ -150,3 +150,11 @@ app.config.from_object(config[os.getenv("FLASK_ENV", "default")])
 - `bandit` (SAST): activarlo en CI con supresiones `# nosec` **marcando** las vulnerabilidades intencionales del lab (SQLi/XSS/IDOR/uploads). No en pre-commit local, porque gritaría en cada commit.
 - Red de seguridad para releases en cambios de `config.json` de release-please (revisión manual en PR).
 - `agents.md` + git-flow (discusión futura): reglas para agentes de IA y flujo de ramas — postergado a decisión explícita.
+
+### 11. Estreno end-to-end y ajustes del primer ciclo
+**Acontecimiento:** primer ciclo completo dev → PR → CI → merge → `v0.2.0` → fix (release `v0.2.1`). Aprendizajes aplicados en caliente:
+- `astral-sh/setup-uv` no resolvió como action (infra del runner) → CI instala `uv` con el instalador oficial (`curl astral.sh/uv/install.sh`) y ejecuta pre-commit desde el propio venv (`uv run pre-commit`).
+- El hook `block-commit-on-main` abortaba el CI que corre sobre `main` → skip cuando `GITHUB_ACTIONS` está seteado (el ruleset server-side es la autoridad en ese entorno).
+- El repo necesitaba **"Allow GitHub Actions to create and approve pull requests"** para que release-please abriera su PR (el PATCH de la API devolvía 404; se activó manual por UI).
+- Tras el merge de un Release PR, `dev` queda con SHAs viejos (rebase del bot) → resolver con `git rebase origin/main` (los patches duplicados se descartan solos).
+- Los PR-triggered runs sobre ramas `release-please--**` fallaban sin log; el job de CI ahora se excluye para ese head (`!startsWith(github.head_ref, 'release-please--')`) — el push de esos PRs a `main` valida el contenido igual.
