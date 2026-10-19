@@ -90,8 +90,8 @@ def init_db():
     # (mala practica deliberada para demostrar en clase)
     # ------------------------------------------------------------------
     usuarios = [
-        ("admin", "admin123", "admin"),        # profesor administrador
-        ("profesor", "clave456", "docente"),   # profesor estandar
+        ("admin", "admin123", "admin"),  # profesor administrador
+        ("profesor", "clave456", "docente"),  # profesor estandar
         ("estudiante", "1234", "estudiante"),  # estudiante
     ]
     cur.executemany(

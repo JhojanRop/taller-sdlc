@@ -103,9 +103,7 @@ def buscar():
         cur.execute(query)
         resultados = cur.fetchall()
         conn.close()
-    return render_template(
-        "buscar.html", resultados=resultados, termino=termino, query=query
-    )
+    return render_template("buscar.html", resultados=resultados, termino=termino, query=query)
 
 
 # ======================================================================
@@ -136,9 +134,7 @@ def editar_biografia(id):
     if request.method == "POST":
         bio = request.form.get("biografia", "")
         # Se guarda la biografia tal cual, sin sanear el contenido.
-        cur.execute(
-            "UPDATE estudiantes SET biografia = ? WHERE id = ?", (bio, id)
-        )
+        cur.execute("UPDATE estudiantes SET biografia = ? WHERE id = ?", (bio, id))
         conn.commit()
         conn.close()
         return redirect(url_for("perfil", id=id))
@@ -163,9 +159,7 @@ def editar_nota(id):
     cur = conn.cursor()
     if request.method == "POST":
         nueva_nota = request.form.get("nota", "0")
-        cur.execute(
-            "UPDATE calificaciones SET nota = ? WHERE id = ?", (nueva_nota, id)
-        )
+        cur.execute("UPDATE calificaciones SET nota = ? WHERE id = ?", (nueva_nota, id))
         conn.commit()
         conn.close()
         return redirect(url_for("buscar"))
@@ -195,8 +189,7 @@ def subir():
             conn = get_connection()
             cur = conn.cursor()
             cur.execute(
-                "INSERT INTO archivos (nombre_archivo, ruta, subido_por) "
-                "VALUES (?, ?, ?)",
+                "INSERT INTO archivos (nombre_archivo, ruta, subido_por) VALUES (?, ?, ?)",
                 (archivo.filename, ruta, session.get("username")),
             )
             conn.commit()
