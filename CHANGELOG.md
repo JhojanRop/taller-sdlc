@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/JhojanRop/taller-sdlc/compare/v0.2.0...v0.2.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* skip main protection hook in ci runs ([49fdf22](https://github.com/JhojanRop/taller-sdlc/commit/49fdf2286ad50f70c5ec6af081db93926b99450d))
+
 ## [0.2.0](https://github.com/JhojanRop/taller-sdlc/compare/v0.1.0...v0.2.0) (2026-10-19)
 
 

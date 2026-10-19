@@ -1,6 +1,6 @@
 [project]
 name = "laboratorio-seguridad"
-version = "0.2.0"
+version = "0.2.1"
 description = "Laboratorio intencionalmente vulnerable para enseñanza de seguridad (S-SDLC). Contiene 4 vulnerabilidades clásicas: SQLi, XSS almacenado, IDOR y carga de archivos sin restricción."
 readme = "README.md"
 requires-python = ">=3.11"
