@@ -18,15 +18,28 @@ Servidor en http://127.0.0.1:5000
 
 ## Workflow y convenciones (Shift-Left)
 
-### Commits — Conventional Commits (obligatorio)
+### Commitlint — Conventional Commits (obligatorio)
 Validado por `commitlint` en el hook `commit-msg`. Tipos permitidos:
 `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`.
 Los tipos alimentan el versionado automatico (`feat` → minor, `fix` → patch, `!`/breaking → major).
 
-### Ramas
-- **`main`**: protegida. **No se commitea ni se pushea directo** (hooks locales + ruleset de GitHub) — los cambios llegan solo via **PR**.
-- **`dev`**: rama base de desarrollo.
-- `feat/*`, `fix/*`, `docs/*`, `chore/*`, etc., ramas cortas desde `dev`.
+### Ramas (git-flow reducido)
+- **`main`**: trunk versionado (asume el rol de la branch `release` de
+  git-flow). **No se commitea ni se pushea directo** (hooks locales +
+  ruleset de GitHub) — llega **solo via PR**.
+- **`dev`**: rama de integracion de desarrollo (local).
+- **Ramas de trabajo**: `feat/*`, `fix/*`, `docs/*`, `chore/*`, `ci/*`,
+  `refactor/*`, `test/*`, `perf/*` — se crean desde `dev` y se integran
+  **en local** (sin PR), siempre con **`--no-ff`** para que quede registro
+  del merge (`Merge branch 'feat/x' into dev`). Se borran despues del
+  merge. Un hook de pre-commit verifica el naming en cada commit.
+- **`dev → main`**: via PR — es el "release" del flujo (dispara
+  release-please). No hay branch `release/*`: cuando se quiere liberar,
+  abre el PR desde `dev`.
+- **Hotfixs**: no hay branch `hotfix/*`. Se nacen `fix/*` **desde `main`**,
+  PR a `main` (el ruleset no se salta aunque sea urgente) y **sync
+  inmediato** a `dev` (`git merge origin/main`) para no divergir.
+- **`--no-verify` prohibido**: el CI captura bypasses (ver abajo).
 
 ### Hooks de pre-commit
 Config en `.pre-commit-config.yaml`. Activarlos al clonar:
@@ -37,6 +50,7 @@ uv run pre-commit install --install-hooks
 uv run pre-commit install --hook-type pre-push --hook-type commit-msg
 ```
 
+| | |
 | Gate | Que valida |
 |--|--|
 | `trailing-whitespace`, `end-of-file-fixer`, `check-toml`, `check-merge-conflict`, `debug-statements` | Higiene del repo |
@@ -44,7 +58,9 @@ uv run pre-commit install --hook-type pre-push --hook-type commit-msg
 | `gitleaks` | secrets en el diff *antes* de commitear |
 | `ruff check --fix`, `ruff format` | Lint + estilo (misma config del proyecto) |
 | `block-commit-on-main` / `block-push-to-main` | protege `main` (PR obligatorio) |
+| `check-branch-naming` | ramas solo con prefijos validos (ver arriba) |
 | `commitlint` | Conventional Commits |
+| `AGENTS.md` | guia operativa para agentes de codigo (OpenCode la carga automaticamente) |
 
 > Nunca uses `--no-verify`: el CI (`.github/workflows/ci.yml`) ejecuta
 > `pre-commit run --all-files` + `pytest` y fallara el PR.
