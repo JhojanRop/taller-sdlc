@@ -1,0 +1,20 @@
+# Shift-Left: quality gates automáticos antes de cada commit.
+# Se evoluciona por etapas: sanitización/calidad -> seguridad -> protección de main -> commitlint.
+repos:
+  # Sanitización básica del repositorio
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  # Lint + formato (mismo ruff que ya usa el proyecto)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.1
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
